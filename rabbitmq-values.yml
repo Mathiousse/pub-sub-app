@@ -1,0 +1,24 @@
+auth:
+  username: "mquser"
+  password: "mqpass123"
+
+service:
+  type: LoadBalancer
+  ports:
+    amqp: 5672
+    http: 15672
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: rabbitmq.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+persistence:
+  enabled: true
+  size: 1Gi
