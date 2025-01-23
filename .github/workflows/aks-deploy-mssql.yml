@@ -27,6 +27,7 @@ env:
 
 jobs:
   deploy:
+    if: false  # This disables the entire workflow
     permissions:
       contents: read
       id-token: write
