@@ -2,7 +2,7 @@ name: Build and deploy API
 on:
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 
 jobs:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '6.0.x'
           
@@ -30,6 +30,7 @@ jobs:
           path: |
             ./publish/api
             ./publish/console
+          retention-days: 5
 
   deploy:
     needs: build
@@ -43,7 +44,7 @@ jobs:
           path: ./publish
 
       - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
           app-name: pub-sub
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
