@@ -25,43 +25,43 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Create NuGet Config
+      - name: Install SonarScanner
         run: |
-          mkdir -p ~/.nuget/NuGet
-          echo '<?xml version="1.0" encoding="utf-8"?><configuration><packageSources><clear /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" /></packageSources></configuration>' > ~/.nuget/NuGet/NuGet.Config
+          dotnet tool install --global dotnet-sonarscanner
+          dotnet tool install --global dotnet-coverage
+
+      - name: Begin Sonar Analysis
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet sonarscanner begin \
+            /k:"Mathiousse_pub-sub-app" \
+            /o:"mathiousse" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" \
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml"
 
       - name: Restore dependencies
         working-directory: ${{ env.PROJECT_FOLDER }}
         run: dotnet restore
 
-      - name: Set up SonarCloud
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=mathiousse
-            -Dsonar.projectKey=Mathiousse_pub-sub-app
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.sources=.
-            -Dsonar.branch.name=${{ github.ref_name }}
-            # Removed the following line to prevent conflict with main branch
-            # -Dsonar.branch.target=develop
-            -Dsonar.cs.vstest.reportsPaths=**/*.trx
-            -Dsonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
-
       - name: Run Tests
         working-directory: ${{ env.PROJECT_FOLDER }}
         run: |
-          mkdir -p TestResults
           dotnet test \
             --no-restore \
             --logger "trx;LogFileName=test-results.trx" \
-            --results-directory "./TestResults" \
+            --results-directory "../TestResults" \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput="./TestResults/"
+            /p:CoverletOutput="../TestResults/coverage.opencover.xml"
+
+      - name: End Sonar Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
