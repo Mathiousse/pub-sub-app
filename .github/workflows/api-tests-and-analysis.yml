@@ -37,7 +37,8 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.sources=.
             -Dsonar.branch.name=${{ github.ref_name }}
-            -Dsonar.branch.target=develop
+            # Removed the following line to prevent conflict with main branch
+            # -Dsonar.branch.target=develop
             -Dsonar.cs.vstest.reportsPaths=**/*.trx
             -Dsonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
 
