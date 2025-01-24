@@ -24,14 +24,16 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Set up SonarQube
-        uses: sonarsource/sonarqube-scan-action@master
+      - name: Set up SonarCloud
+        uses: SonarSource/sonarcloud-github-action@master
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
+            -Dsonar.organization=mathiousse
             -Dsonar.projectKey=${{ env.PROJECT_NAME }}
+            -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.sources=.
             -Dsonar.cs.vstest.reportsPaths=**/TestResults/*.trx
             -Dsonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
