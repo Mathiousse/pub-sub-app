@@ -3,6 +3,7 @@ name: API Tests and Analysis
 on:
   push:
     branches:
+      - main
       - develop
   workflow_dispatch:
 
@@ -12,7 +13,7 @@ jobs:
     env:
       PROJECT_FOLDER: "RabbitMqProductAPI"
       PROJECT_NAME: "RabbitMqProductAPI"
-      DOTNET_VERSION: "9.x"
+      DOTNET_VERSION: "8.0.x"
 
     steps:
       - uses: actions/checkout@v4
@@ -35,14 +36,18 @@ jobs:
             -Dsonar.projectKey=${{ env.PROJECT_NAME }}
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.sources=.
-            -Dsonar.cs.vstest.reportsPaths=**/TestResults/*.trx
+            -Dsonar.branch.name=${{ github.ref_name }}
+            -Dsonar.branch.target=develop
+            -Dsonar.cs.vstest.reportsPaths=**/*.trx
             -Dsonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
 
       - name: Run Tests
         working-directory: ${{ env.PROJECT_FOLDER }}
         run: >
-          dotnet test --logger "trx;LogFileName=test-results.trx"
-          /p:CollectCoverage=true
+          dotnet test 
+          --logger "trx;LogFileName=test-results.trx" 
+          --results-directory "./TestResults"
+          /p:CollectCoverage=true 
           /p:CoverletOutputFormat=opencover
 
       - name: Publish Test Results
@@ -50,4 +55,4 @@ jobs:
         if: always()
         with:
           files: |
-            ${{ env.PROJECT_FOLDER }}/**/TestResults/*.trx
+            ${{ env.PROJECT_FOLDER }}/TestResults/*.trx
