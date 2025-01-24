@@ -33,7 +33,7 @@ jobs:
         with:
           args: >
             -Dsonar.organization=mathiousse
-            -Dsonar.projectKey=${{ env.PROJECT_NAME }}
+            -Dsonar.projectKey=pub_sub_app
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.sources=.
             -Dsonar.branch.name=${{ github.ref_name }}
