@@ -15,8 +15,8 @@ jobs:
     env:
       PROJECT_FOLDER: "RabbitMqProductAPI"
       PROJECT_NAME: "RabbitMqProductAPI"
-      DOTNET_VERSION: "6.0.x"
-      DOTNET_EF_VERSION: "6.0.0"
+      DOTNET_VERSION: "6.0.7"
+      DOTNET_EF_VERSION: "6.0.7"
 
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
 
       - name: dotnet migrations script
         working-directory: ${{env.PROJECT_FOLDER}}
-        run: dotnet ef migrations script -c Release -p ${{env.PROJECT_NAME}}.csproj -o myapp/migrate/migrate.sql --verbose
+        run: dotnet ef migrations script --configuration Release --output myapp/migrate/migrate.sql --context DbContextClass --project ${{env.PROJECT_NAME}}.csproj --verbose
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
