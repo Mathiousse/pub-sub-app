@@ -3,7 +3,7 @@ name: API Tests and Analysis
 on:
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 
 jobs:
