@@ -5,7 +5,8 @@ on:
     branches:
       - main
       - develop
-  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   analyze:
@@ -25,41 +26,26 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Create NuGet Config
-        run: |
-          mkdir -p ~/.nuget/NuGet
-          echo '<?xml version="1.0" encoding="utf-8"?><configuration><packageSources><clear /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" /></packageSources></configuration>' > ~/.nuget/NuGet/NuGet.Config
-
       - name: Restore dependencies
         working-directory: ${{ env.PROJECT_FOLDER }}
         run: dotnet restore
 
-      - name: Set up SonarCloud
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=mathiousse
-            -Dsonar.projectKey=Mathiousse_pub-sub-app
-            -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.sources=.
-            -Dsonar.branch.name=${{ github.ref_name }}
-            -Dsonar.cs.vstest.reportsPaths=**/*.trx
-            -Dsonar.cs.opencover.reportsPaths=**/coverage.opencover.xml
-
       - name: Run Tests
         working-directory: ${{ env.PROJECT_FOLDER }}
         run: |
-          mkdir -p ./TestResults
           dotnet test \
             --no-restore \
             --logger "trx;LogFileName=test-results.trx" \
-            --results-directory "./TestResults" \
+            --results-directory "TestResults" \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput="./TestResults/coverage.opencover.xml"
+            /p:CoverletOutput="TestResults/coverage.opencover.xml"
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
