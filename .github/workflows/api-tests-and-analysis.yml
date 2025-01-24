@@ -25,6 +25,15 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Create NuGet Config
+        run: |
+          mkdir -p ~/.nuget/NuGet
+          echo '<?xml version="1.0" encoding="utf-8"?><configuration><packageSources><clear /><add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" /></packageSources></configuration>' > ~/.nuget/NuGet/NuGet.Config
+
+      - name: Restore dependencies
+        working-directory: ${{ env.PROJECT_FOLDER }}
+        run: dotnet restore
+
       - name: Set up SonarCloud
         uses: SonarSource/sonarcloud-github-action@master
         env:
@@ -44,12 +53,15 @@ jobs:
 
       - name: Run Tests
         working-directory: ${{ env.PROJECT_FOLDER }}
-        run: >
-          dotnet test 
-          --logger "trx;LogFileName=test-results.trx" 
-          --results-directory "./TestResults"
-          /p:CollectCoverage=true 
-          /p:CoverletOutputFormat=opencover
+        run: |
+          mkdir -p TestResults
+          dotnet test \
+            --no-restore \
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory "./TestResults" \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat=opencover \
+            /p:CoverletOutput="./TestResults/"
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
