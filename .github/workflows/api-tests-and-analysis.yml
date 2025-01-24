@@ -33,22 +33,31 @@ jobs:
       - name: Run Tests
         working-directory: ${{ env.PROJECT_FOLDER }}
         run: |
-          mkdir -p TestResults
+          # Ensure TestResults directory exists
+          mkdir -p "$(pwd)/TestResults"
+          
+          # Run tests with explicit configuration
           dotnet test \
-            --no-restore \
+            --configuration Release \
+            --verbosity normal \
             --logger "trx;LogFileName=test-results.trx" \
-            --results-directory "./TestResults" \
+            --logger "console;verbosity=detailed" \
+            --results-directory "$(pwd)/TestResults" \
             /p:CollectCoverage=true \
             /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput="./TestResults/coverage.opencover.xml"
+            /p:CoverletOutput="$(pwd)/TestResults/coverage.opencover.xml"
+          
+          # List files to verify output
+          ls -la "$(pwd)/TestResults"
 
       - name: Upload Test Results
         uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-results
-          path: ${{ env.PROJECT_FOLDER }}/TestResults
-          retention-days: 1
+          path: |
+            ${{ github.workspace }}/${{ env.PROJECT_FOLDER }}/TestResults/**/*.trx
+            ${{ github.workspace }}/${{ env.PROJECT_FOLDER }}/TestResults/**/coverage.opencover.xml
 
       - name: Download Test Results
         uses: actions/download-artifact@v3
