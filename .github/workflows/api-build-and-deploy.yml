@@ -30,6 +30,17 @@ jobs:
         working-directory: ${{env.PROJECT_FOLDER}}
         run: dotnet build --configuration Release
 
+      - name: Test with dotnet
+        working-directory: ${{env.PROJECT_FOLDER}}
+        run: dotnet test --configuration Release --logger "trx;LogFileName=test-results.trx" --results-directory ./TestResults
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: success() || failure()    # run this step even if previous step failed
+        with:
+          name: test-results
+          path: ${{env.PROJECT_FOLDER}}/TestResults
+
       - name: dotnet publish
         working-directory: ${{env.PROJECT_FOLDER}}
         run: dotnet publish -c Release -o myapp
